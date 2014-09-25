@@ -73,3 +73,34 @@ def p_spectrum_kernel(p, s, t):
         for j in xrange(len(s)-p+1):
             result += k_suffix_kernel(p, s[i:i+p], t[j:j+p])
     return result
+
+
+def bruteforce_blended_spectrum_kernel(s, t, p):
+    """
+    returns the number of contiguous subsequences/substrings
+    between strings s and t for all substrings of length <= p.
+
+    Note: this (bruteforce) version does not consider
+    gap penalties (i.e. there's no lambda decay).
+
+    Examples
+    --------
+    >>> bruteforce_blended_spectrum_kernel('a', 'a', 1)
+    1
+    >>> bruteforce_blended_spectrum_kernel('a', 'b', 1)
+    0
+    >>> bruteforce_blended_spectrum_kernel('ab', 'ab', 1)
+    2
+    >>> bruteforce_blended_spectrum_kernel('abccc', 'abc', 2)
+    7
+    """
+    def delta(s, t):
+        """identity function."""
+        return 1 if s == t else 0
+
+    result = 0
+    for h in xrange(p):
+        for i in xrange(len(s)-h):
+            for j in xrange(len(t)-h):
+                result += delta(s[i:i+h+1], t[j:j+h+1])
+    return result
