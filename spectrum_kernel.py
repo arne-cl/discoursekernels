@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+from repoze.lru import lru_cache
+
 """Naive implementation of a p-spectrum string kernel."""
 
+
+@lru_cache(500)
 def k_suffix_kernel(k, s, t):
     """
     calculates k-suffix kernel of input strings s and t::
@@ -104,6 +108,9 @@ def bruteforce_blended_spectrum_kernel(s, t, p):
             for j in xrange(len(t)-h):
                 result += delta(s[i:i+h+1], t[j:j+h+1])
     return result
+
+
+@lru_cache(500)
 def p_suffix_kernel(s, t, p, lambda_weight):
     """
     evalutates the similarity of of the suffixes of the given
