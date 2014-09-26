@@ -104,3 +104,53 @@ def bruteforce_blended_spectrum_kernel(s, t, p):
             for j in xrange(len(t)-h):
                 result += delta(s[i:i+h+1], t[j:j+h+1])
     return result
+def p_suffix_kernel(s, t, p, lambda_weight):
+    """
+    evalutates the similarity of of the suffixes of the given
+    input strings s and t.
+    """
+    if p == 0:
+        return 0
+    # if s and t share a suffix of length p
+    if s[-p:] == t[-p:]:
+        # evaluate p-suffix kernel recursively on the remaining front
+        # parts of the strings (i.e. the 'head' in Prolog terminology or
+        # 'car' in Lisp)
+        return lambda_weight**2 * (1 + p_suffix_kernel(s[:-p], t[:-p], p-1,
+                                                       lambda_weight))
+    else:
+        return 0
+
+
+def blended_spectrum_kernel(s, t, p, lambda_weight=1):
+    """
+    blended version of the p-spectrum kernel,
+
+    which considers all spectra in the range
+    1 <= d <= p and weights them according to lamda_weigth^d.
+    The calculation works just like the p-spectrum kernel,
+    but uses the p-suffix instead of the k-suffix kernel::
+
+        \tilde{K_{p}} =
+            \sum\limits^{|s|-p+1}_{i=1}
+            \sum\limits^{|t|-p+1}_{j=1}
+                \tilde{K}^{S}_{p}(s(i:i+p), t(j:j+p))
+
+        (Shawe-Taylor and Cristianini 2004, p.350f)
+
+    Paramters
+    ---------
+    s : str
+        input string 1
+    t : str
+        input string 2
+    p : int
+        length of contiguous substrings to be found
+    lambda_weight : int
+       weight common suffixes according to their length
+    """
+    result = 0
+    for i in xrange(len(s)-p+1):
+        for j in xrange(len(s)-p+1):
+            result += p_suffix_kernel(s[i:i+p], t[j:j+p], p, lambda_weight)
+    return result
