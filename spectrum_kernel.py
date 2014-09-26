@@ -4,7 +4,7 @@
 
 from repoze.lru import lru_cache
 
-"""Naive implementation of a p-spectrum string kernel."""
+"""Naive implementations of a spectrum (string) kernels."""
 
 
 @lru_cache(500)
