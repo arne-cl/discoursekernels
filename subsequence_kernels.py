@@ -52,3 +52,22 @@ def all_noncontiguous_subsequences_kernel(s, t):
                 last = j
             dp[i][j] = dp[i-1][j] + p[j]
     return dp[len(s)][len(t)]
+
+
+@lru_cache(500)
+def fixed_length_subsequences_kernel_naive(s, t, p):
+    """
+    Shawe-Taylor and Cristianini (2004, p. 358)
+    """
+    if p == 0:
+        return 1
+    elif not s or not t:
+        if p > 0:
+            return 0
+    else:
+        s_head, s_tail = s[:-1], s[-1]
+        result = 0
+        for j, t_j in enumerate(t):
+            if t_j == s_tail:
+                result += fixed_length_subsequences_kernel_naive(s_head, t[:j], p-1)
+        return fixed_length_subsequences_kernel_naive(s_head, t, p) + result
