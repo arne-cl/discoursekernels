@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+import numpy
 from repoze.lru import lru_cache
 
 """Naive implementations of subsequence kernels"""
@@ -22,3 +23,29 @@ def all_subsequences_kernel(s, t):
             if t[k] == s_tail:
                 result += all_subsequences_kernel(s_head, t[:k])
     return all_subsequences_kernel(s_head, t) + result
+
+
+def all_noncontiguous_subsequences_kernel(s, t):
+    """
+    counts the number of non-contiguous subsequences
+    that the input strings have in common. instead of recursion,
+    this implementation uses a dynamic programming matrix
+    for all values that can be reused.
+
+    Shawe-Taylor and Cristianini (2004, p. 356)
+    """
+    dp = numpy.zeros( (len(s)+1, len(t)+1) )
+    for j, _tj in enumerate(t, 1):
+        dp[0][j] = 1
+
+    p = numpy.zeros(len(t)+1)
+    for i, s_i in enumerate(s, 1):
+        last = 0
+        p[0] = 0
+        for j, t_j in enumerate(t, 1):
+            p[j] = p[last]
+            if t_j == s_i:
+                p[j] = p[last] + dp[i-1][j-1]
+                last = j
+            dp[i][j] = dp[i-1][j] + p[j]
+    return dp[len(s)][len(t)]
