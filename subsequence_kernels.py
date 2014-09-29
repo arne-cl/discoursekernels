@@ -73,3 +73,29 @@ def fixed_length_subsequences_kernel_naive(s, t, p):
             if t_j == s_tail:
                 result += fixed_length_subsequences_kernel_naive(s_head, t[:j], p-1)
         return fixed_length_subsequences_kernel_naive(s_head, t, p) + result
+
+
+def fixed_length_subsequences_kernel(s, t, p, debug=False):
+    """
+    Shawe-Taylor and Cristianini (2004, p. 359)
+
+    TODO: convert to zero-based numbering
+    """
+    dp = numpy.ones( (len(s)+1, len(t)+1) )
+    pre = numpy.zeros(len(t)+1)
+
+    for l in xrange(1, p+1):
+        dp_recursive = dp
+        for j, _tj in enumerate(t, 1):  # TODO: get rid of loop
+            dp[0][j] = 1
+        for i, s_i in enumerate(s[:len(s)-p+l], 1):
+            last = 0
+            pre[0] = 0
+            for j, t_j in enumerate(t, 1):
+                pre[j] = pre[last]
+                if t_j == s_i:
+                    pre[j] = pre[last] + dp_recursive[i-1][j-1]
+                dp[i][j] = dp[i-1][j] + pre[j]
+    if debug:
+        return dp[len(s)][len(t)], dp
+    return dp[len(s)][len(t)]
