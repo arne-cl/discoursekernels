@@ -36,21 +36,23 @@ def all_noncontiguous_subsequences_kernel(s, t):
     for all values that can be reused.
 
     Shawe-Taylor and Cristianini (2004, p. 356)
+
+    TODO: convert to zero-based numbering
     """
     dp = numpy.zeros( (len(s)+1, len(t)+1) )
-    for j, _tj in enumerate(t, 1):
+    for j, _tj in enumerate(t, 1):  # TODO: get rid of loop
         dp[0][j] = 1
 
-    p = numpy.zeros(len(t)+1)
+    pre = numpy.zeros(len(t)+1)
     for i, s_i in enumerate(s, 1):
         last = 0
-        p[0] = 0
+        pre[0] = 0
         for j, t_j in enumerate(t, 1):
-            p[j] = p[last]
+            pre[j] = pre[last]
             if t_j == s_i:
-                p[j] = p[last] + dp[i-1][j-1]
+                pre[j] = pre[last] + dp[i-1][j-1]
                 last = j
-            dp[i][j] = dp[i-1][j] + p[j]
+            dp[i][j] = dp[i-1][j] + pre[j]
     return dp[len(s)][len(t)]
 
 
