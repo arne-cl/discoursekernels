@@ -11,6 +11,9 @@ from repoze.lru import lru_cache
 @lru_cache(500)
 def all_subsequences_kernel(s, t):
     """
+    counts the number of contiguous and non-contiguous subsequences
+    that the input strings have in common (incl. the empty string).
+
     Shawe-Taylor and Cristianini (2004, p. 353f)
     """
     # if s or t are empty strings
