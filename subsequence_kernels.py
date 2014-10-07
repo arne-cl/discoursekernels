@@ -101,7 +101,7 @@ def fixed_length_subsequences_kernel(s, t, p, debug=False):
     return dp[len(s)][len(t)]
 
 
-def gap_weighted_subsequences_kernel_recursive(s, t, p, lamdba_weight):
+def gap_weighted_subsequences_kernel_recursive(s, t, p, lambda_weight):
     """
     Shawe-Taylor and Cristianini (2004, p. 364f).
 
@@ -115,13 +115,13 @@ def gap_weighted_subsequences_kernel_recursive(s, t, p, lamdba_weight):
     s_head, s_tail = head(s), tail(s)
     t_head, t_tail = head(t), tail(t)
     if p == 1:
-        return delta(s_tail, t_tail) * (lamdba_weight ** 2)
+        return delta(s_tail, t_tail) * (lambda_weight ** 2)
 
     result = 0
     
     if s_tail == t_tail:
         for i, s_i in enumerate(s, 1):
             for j, t_j in enumerate(t, 1):
-                rec = gap_weighted_subsequences_kernel_recursive(s[:i], t[:j], p-1, lamdba_weight)
-                result += (lamdba_weight ** (2 + len(s) - i + len(t) - j)) * rec
+                rec = gap_weighted_subsequences_kernel_recursive(s[:i], t[:j], p-1, lambda_weight)
+                result += (lambda_weight ** (2 + len(s) - i + len(t) - j)) * rec
     return result
