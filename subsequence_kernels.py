@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+from collections import defaultdict
 import numpy
 from repoze.lru import lru_cache
 
@@ -111,17 +112,44 @@ def gap_weighted_subsequences_kernel_recursive(s, t, p, lambda_weight):
     delta = lambda x, y: 1 if x == y else 0  # identity function
     head = lambda x: x[:-1]
     tail = lambda x: x[-1] if x else ''  # last char or '' if empty
-    
+
     s_head, s_tail = head(s), tail(s)
     t_head, t_tail = head(t), tail(t)
     if p == 1:
         return delta(s_tail, t_tail) * (lambda_weight ** 2)
 
     result = 0
-    
+
     if s_tail == t_tail:
         for i, s_i in enumerate(s, 1):
             for j, t_j in enumerate(t, 1):
                 rec = gap_weighted_subsequences_kernel_recursive(s[:i], t[:j], p-1, lambda_weight)
                 result += (lambda_weight ** (2 + len(s) - i + len(t) - j)) * rec
     return result
+
+
+def gap_weighted_subsequences_kernel(s, t, p, lambda_weight):
+    """
+    Shawe-Taylor and Cristianini (2004, p. 369).
+
+    TODO: add tests
+    """
+    dps = numpy.zeros( (len(s)+1, len(t)+1) )
+    for i, s_i in enumerate(s, 1):
+        for j, t_j in enumerate(t, 1):
+            if s_i == t_j:
+                dps[i][j] = lambda_weight ** 2
+
+    dp = numpy.zeros( (len(s)+1, len(t)+1) )
+    kern = defaultdict(int)
+    for l in xrange(2, p+1):
+        kern[l] = 0
+        for i, s_i in enumerate(s, 1):
+            for j, t_j in enumerate(t, 1):
+                dp[i][j] = dps[i][j] + lambda_weight * dp[i-1][j] \
+                            + lambda_weight * dp[i, j-1] \
+                            - lambda_weight**2 *  dp[i-1][j-1]
+                if s_i == t_j:
+                    dps[i][j] = lambda_weight**2 * dp[i-1][j-1]
+                    kern[l] += dps[i][j]
+    return kern[p]
