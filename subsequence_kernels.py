@@ -10,7 +10,7 @@ from repoze.lru import lru_cache
 
 
 @lru_cache(500)
-def all_subsequences_kernel(s, t):
+def all_subsequences_kernel_recursive(s, t):
     """
     counts the number of contiguous and non-contiguous subsequences
     that the input strings have in common (incl. the empty string).
@@ -25,11 +25,11 @@ def all_subsequences_kernel(s, t):
         result = 0
         for k, _ti in enumerate(t):
             if t[k] == s_tail:
-                result += all_subsequences_kernel(s_head, t[:k])
-    return all_subsequences_kernel(s_head, t) + result
+                result += all_subsequences_kernel_recursive(s_head, t[:k])
+    return all_subsequences_kernel_recursive(s_head, t) + result
 
 
-def all_noncontiguous_subsequences_kernel(s, t):
+def all_subsequences_kernel_dp1(s, t):
     """
     counts the number of non-contiguous subsequences
     that the input strings have in common. instead of recursion,
@@ -58,7 +58,7 @@ def all_noncontiguous_subsequences_kernel(s, t):
 
 
 @lru_cache(500)
-def fixed_length_subsequences_kernel_naive(s, t, p):
+def fixed_length_subsequences_kernel_recursive(s, t, p):
     """
     Shawe-Taylor and Cristianini (2004, p. 358)
     """
@@ -72,11 +72,11 @@ def fixed_length_subsequences_kernel_naive(s, t, p):
         result = 0
         for j, t_j in enumerate(t):
             if t_j == s_tail:
-                result += fixed_length_subsequences_kernel_naive(s_head, t[:j], p-1)
-        return fixed_length_subsequences_kernel_naive(s_head, t, p) + result
+                result += fixed_length_subsequences_kernel_recursive(s_head, t[:j], p-1)
+        return fixed_length_subsequences_kernel_recursive(s_head, t, p) + result
 
 
-def fixed_length_subsequences_kernel(s, t, p, debug=False):
+def fixed_length_subsequences_kernel_dp1(s, t, p, debug=False):
     """
     Shawe-Taylor and Cristianini (2004, p. 359)
 
@@ -128,7 +128,7 @@ def gap_weighted_subsequences_kernel_recursive(s, t, p, lambda_weight):
     return result
 
 
-def gap_weighted_subsequences_kernel(s, t, p, lambda_weight):
+def gap_weighted_subsequences_kernel_dp1(s, t, p, lambda_weight):
     """
     Shawe-Taylor and Cristianini (2004, p. 369).
 
