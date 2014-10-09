@@ -8,7 +8,7 @@ from repoze.lru import lru_cache
 
 
 @lru_cache(500)
-def k_suffix_kernel(k, s, t):
+def k_suffix_kernel(s, t, k):
     """
     calculates k-suffix kernel of input strings s and t::
 
@@ -42,7 +42,7 @@ def k_suffix_kernel(k, s, t):
     return 1 if s_suffix == t_suffix else 0
 
 
-def p_spectrum_kernel(p, s, t):
+def p_spectrum_kernel(s, t, p):
     """
     calculates the inner product of the p-spectra of
     the strings s and t.
@@ -75,7 +75,7 @@ def p_spectrum_kernel(p, s, t):
     result = 0
     for i in xrange(len(s)-p+1):
         for j in xrange(len(s)-p+1):
-            result += k_suffix_kernel(p, s[i:i+p], t[j:j+p])
+            result += k_suffix_kernel(s[i:i+p], t[j:j+p], p)
     return result
 
 
