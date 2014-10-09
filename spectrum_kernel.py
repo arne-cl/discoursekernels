@@ -112,7 +112,7 @@ def bruteforce_blended_spectrum_kernel(s, t, p):
 
 
 @lru_cache(500)
-def p_suffix_kernel(s, t, p, lambda_weight):
+def p_suffix_kernel(s, t, p, lambda_weight=1):
     """
     evalutates the similarity of of the suffixes of the given
     input strings s and t.
