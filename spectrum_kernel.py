@@ -119,13 +119,15 @@ def p_suffix_kernel(s, t, p, lambda_weight):
     """
     if p == 0:
         return 0
-    # if s and t share a suffix of length p
-    if s[-p:] == t[-p:]:
-        # evaluate p-suffix kernel recursively on the remaining front
-        # parts of the strings (i.e. the 'head' in Prolog terminology or
-        # 'car' in Lisp)
-        return lambda_weight**2 * (1 + p_suffix_kernel(s[:-p], t[:-p], p-1,
-                                                       lambda_weight))
+    # if s and t share their last character
+    try:
+        if s[-1] == t[-1]:
+            # evaluate p-suffix kernel recursively the remaining strings
+            # (i.e. everything but the last character)
+            return lambda_weight**2 * (1 + p_suffix_kernel(s[:-1], t[:-1], p-1,
+                                                           lambda_weight))
+    except IndexError:  # at least one of the strings is empty
+        return 0
     else:
         return 0
 

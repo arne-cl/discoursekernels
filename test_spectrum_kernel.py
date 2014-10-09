@@ -45,9 +45,31 @@ def test_bruteforce_blended_spectrum_kernel():
         assert bruteforce_blended_spectrum_kernel(*params) == result
 
 
+PSUFFIX_KERNEL_PARAMS = {
+    # result is always zero for lambda=0 or p=0
+    ('', '', 0, 0): 0,
+    ('', '', 0, 1): 0,
+    ('hall', 'halt', 3, 1): 0,
+    ('foo', 'bar', 0, 0): 0,
+    ('foo', 'bar', 0, 1): 0,
+    ('foo', 'foo', 1, 0): 0,
+    ('foo', 'foo', 1, 1): 1,
+    ('foo', 'foo', 2, 1): 2,
+    ('foo', 'foo', 3, 1): 3,
+    ('foo', 'foo', 4, 1): 3,
+    ('foo', 'foo', 5, 1): 3,
+    ('foo', 'foo', 3, 2): 84,
+    ('bieber', 'fieber', 0, 0): 0,
+    ('bieber', 'fieber', 0, 1): 0,
+    ('bieber', 'fieber', 1, 0): 0,
+    ('bieber', 'fieber', 5, 1): 5,
+}
+
+
 def test_p_suffix_kernel():
     from spectrum_kernel import p_suffix_kernel
-    raise NotImplementedError
+    for params, result in PSUFFIX_KERNEL_PARAMS.iteritems():
+        assert p_suffix_kernel(*params) == result
 
 
 def test_blended_spectrum_kernel():
