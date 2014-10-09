@@ -35,8 +35,9 @@ def k_suffix_kernel(s, t, k):
         returns 1, iff the strings s and t have the same suffix (of length k).
         otherwise, returns 0.
     """
-    assert min(len(s), len(t)) >= k, \
-        "strings must be at least as long as the given suffix length k"
+    # strings can't have a suffix length of k, if they are shorter than k
+    if min(len(s), len(t)) < k:
+        return 0
     s_suffix = s[-k:] # suffix of length k
     t_suffix = t[-k:]
     return 1 if s_suffix == t_suffix else 0
