@@ -33,9 +33,11 @@ def test_p_spectrum_kernel():
 
 BBS_KERNEL_PARAMS = {
     ('a', 'a', 1): 1,
+    # ('a','a', 2): 4, # from blended_spectrum_bf.m; doesn't work there either
     ('a', 'b', 1): 0,
     ('ab', 'ab', 1): 2,
-    ('abccc', 'abc', 2): 7
+    ('abccc', 'abc', 2): 7,
+    ('abc','abccc',2): 7
 }
 
 
