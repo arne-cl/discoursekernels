@@ -22,5 +22,5 @@ packages={'discoursekernels'},
 #py_modules=['discoursekernels'],
 #scripts=['spectrum_kernel.py', 'subsequence_kernels.py', 'tree_kernel.py'],
 license='3-Clause BSD',
-install_requires=['networkx', 'numpy', 'repoze.lru'],
+install_requires=['networkx', 'numpy', 'repoze.lru', 'ordered_set'],
 )
