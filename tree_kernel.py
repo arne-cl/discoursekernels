@@ -49,12 +49,17 @@ def get_production_rules(syntax_tree, root_node='S'):
     return rules
 
 
-def contains_only_complete_productions(tree, subtree, subtree_root):
+def contains_only_complete_productions(tree, subtree):
+    """
+    checks, if a syntax subtree only consists of complete productions from the
+    given tree.
+    """
     assert is_tree(tree)
     for node_id in subtree.nodes_iter():
         production = []
-        # there's only one parent in a tree
-        production.append(tree.in_edges(node_id)[0])
+        # in a tree, each node can only have one parent
+        parent, _this = tree.in_edges(node_id)[0]
+        production.append(parent)
         # siblings = all children of parent, incl. node_id
         production.extend(tree.successors(parent))
         for node in production:
@@ -112,7 +117,7 @@ def count_proper_corooted_subtrees(tree, root_node):
     return subtree_count
 
 
-def get_syntax_subtrees(tree, root_node='S'):
+def get_syntax_subtrees(tree, root_node='S', debug_dir='/tmp/subtrees'):
     """
     Collins and Duffy (2001) define a subtree to be any subgraph, which
     includes more than one node. A subtree must not include partial rule
@@ -121,19 +126,23 @@ def get_syntax_subtrees(tree, root_node='S'):
 
     cf. Collins and Duffy (2001). Convolution Kernels for Natural Language.
     """
+    import os
+    from networkx import write_dot
+
     def is_subtree(tree, subtree, subtree_root_node):
         if len(subtree.nodes()) < 2:
             return False
-        elif not contains_only_complete_productions(tree, subtree, tree_root,
-                                                    subtree_root):
+        elif not contains_only_complete_productions(tree, subtree):
             return False
         else:
             return True
 
     subtrees = []
-    for child_node in tree.successors(root_node):
+    for i, child_node in enumerate(tree.successors(root_node)):
         # cf. http://stackoverflow.com/questions/7892144/subtree-with-networkx
         child_subgraph = dfs_tree(tree, child_node)
+        if debug_dir:
+            write_dot(child_subgraph, os.path.join(debug_dir, 'subtree-{}.dot'.format(i)))
         if is_subtree(tree, child_subgraph, child_node):
             subtrees.append(child_subgraph)
     return subtrees
