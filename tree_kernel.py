@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
-from networkx import DiGraph
+from networkx import DiGraph, dfs_edges
 from networkx.algorithms.traversal.depth_first_search import dfs_tree
 from networkx.algorithms.tree import is_tree
 from ordered_set import OrderedSet
@@ -42,10 +42,10 @@ def get_production_rules(syntax_tree, root_node='S'):
     """
     rules = {}
     dfs_nodes = OrderedSet()
-    for source, target in nx.dfs_edges(tree, root_node):
+    for source, target in dfs_edges(syntax_tree, root_node):
         dfs_nodes.append(source)
     for lhs in dfs_nodes:
-        rules[lhs] = syntax_tree.successor(lhs)
+        rules[lhs] = syntax_tree.successors(lhs)
     return rules
 
 
