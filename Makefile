@@ -8,7 +8,7 @@ uninstall:
 
 clean:
 	find . -name '*.pyc' -delete
-	rm -rf build dist src/discoursekernels.egg-info
+	rm -rf build dist discoursekernels.egg-info __pycache__
 
 reinstall: clean uninstall install
 
