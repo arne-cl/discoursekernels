@@ -21,22 +21,38 @@ def is_leave(tree, node_id):
     return True if tree.out_degree(node_id) == 0 else False
 
 
-def get_production_rules(syntax_tree, root_node='S'):
+def get_production_rules(syntax_tree, root_node=None):
     """
     Iterates through a tree (starting at the given node) and returns
-    a dictionary of 'production rules'. each 'rule' consists of a node ID
-    as its key and a list of it successors (i.e. the node IDs of all the nodes
-    connected via outgoing edges) as its value.
+    a set of 'production rules'. each 'rule' is a tuple, consisting of a
+    node ID (str) and a tuple of it successors (str, i.e. the node IDs of all
+    the nodes connected via outgoing edges) as its value.
 
     I put 'production rules' in quotes, as they are based on unique node IDs,
     and not necessarily on syntactic categories.
+
+    Parameters
+    ----------
+    syntax_tree : networkx.DiGraph
+        a tree represented as a directed graph
+    root_node : str or None
+        the node ID of the tree's root node. if not specified, it will be
+        determined automatically.
+
+    Returns
+    -------
+    rules : list of (str, tuple of str) tuples
+        each rule consists of a lhs (a string representing a node ID) and a rhs
+        (a tuple of strings representing node IDs)
     """
-    rules = {}
-    dfs_nodes = OrderedSet()
-    for source, target in dfs_edges(syntax_tree, root_node):
-        dfs_nodes.append(source)
-    for lhs in dfs_nodes:
-        rules[lhs] = syntax_tree.successors(lhs)
+    rules = set()
+
+    if not root_node:
+        # root node is the first element in a topological sort of the graph
+        root_node = topological_sort(syntax_tree)[0]
+
+    for source, _target in dfs_edges(syntax_tree, root_node):
+        rules.add( (source, tuple(syntax_tree.successors(source))) )
     return rules
 
 
