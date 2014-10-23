@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
-from networkx import DiGraph, dfs_edges
+from networkx import DiGraph, dfs_edges, is_arborescence, topological_sort
 from networkx.algorithms.traversal.depth_first_search import dfs_tree
-from networkx.algorithms.tree import is_tree
 from ordered_set import OrderedSet
 
 
@@ -116,7 +115,7 @@ def count_proper_corooted_subtrees(tree, root_node):
     return subtree_count
 
 
-def get_syntax_subtrees(tree, root_node='S', debug_dir='/tmp/subtrees'):
+def is_subtree(tree, subtree, subtree_root_node=None):
     """
     Collins and Duffy (2001) define a subtree to be any subgraph, which
     includes more than one node. A subtree must not include partial rule
@@ -124,17 +123,31 @@ def get_syntax_subtrees(tree, root_node='S', debug_dir='/tmp/subtrees'):
     [NP [D the] [N apple]] and [D the] are subtrees.
 
     cf. Collins and Duffy (2001). Convolution Kernels for Natural Language.
+
+    TODO: implement is_rooted_tree()
+    NOTE: is_arborescence() is defined as follows:
+        An arborescence is a directed tree with maximum in-degree equal to 1.
     """
+    if len(subtree.nodes()) < 2:
+        return False
+
+    # root node is the first element in a topological sort of the graph
+    if not subtree_root_node:
+        subtree_root_node = topological_sort(subtree)[0]
+
+    if not contains_only_complete_productions(tree, subtree, subtree_root_node):
+        return False
+    elif not is_arborescence(tree):
+        return False
+    elif not is_arborescence(subtree):
+        return False
+    else:
+        return True
+
+
+def get_syntax_subtrees(tree, root_node='S', debug_dir='/tmp/subtrees'):
     import os
     from networkx import write_dot
-
-    def is_subtree(tree, subtree, subtree_root_node):
-        if len(subtree.nodes()) < 2:
-            return False
-        elif not contains_only_complete_productions(tree, subtree):
-            return False
-        else:
-            return True
 
     subtrees = []
     for i, child_node in enumerate(tree.successors(root_node)):
