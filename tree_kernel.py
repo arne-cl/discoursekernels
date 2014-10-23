@@ -9,25 +9,16 @@ from ordered_set import OrderedSet
 
 
 def is_proper(tree):
-    """returns True, iff input is a proper tree"""
+    """
+    returns True, iff input is a proper tree.
+    A tree is proper if it contains at least one edge.
+    """
     return True if len(tree.edges()) > 0 else False
 
 
 def is_leave(tree, node_id):
     """returns True, if the given node is a leave node"""
     return True if tree.out_degree(node_id) == 0 else False
-
-
-def generate_example_tree():
-    """creates a tree/networkx.DiGraph of a syntactic parse tree"""
-    tree = DiGraph()
-    tree.add_nodes_from(['S', 'NP-1', 'N-1', 'Jeff', 'VP', 'V', 'ate', 'NP-2', 'D',
-                         'the', 'N-2', 'apple'])
-    tree.add_edges_from([('S', 'NP-1'), ('NP-1', 'N-1'), ('N-1', 'Jeff'),
-                         ('S', 'VP'), ('VP', 'V'), ('V', 'ate'),
-                         ('VP', 'NP-2'), ('NP-2', 'D'), ('D', 'the'),
-                         ('NP-2', 'N-2'), ('N-2', 'apple')])
-    return tree
 
 
 def get_production_rules(syntax_tree, root_node='S'):
