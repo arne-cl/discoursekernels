@@ -56,23 +56,15 @@ def get_production_rules(syntax_tree, root_node=None):
     return rules
 
 
-def contains_only_complete_productions(tree, subtree):
+def contains_only_complete_productions(tree, subtree, subtree_root_node=None):
     """
     checks, if a syntax subtree only consists of complete productions from the
     given tree.
     """
-    assert is_tree(tree)
-    for node_id in subtree.nodes_iter():
-        production = []
-        # in a tree, each node can only have one parent
-        parent, _this = tree.in_edges(node_id)[0]
-        production.append(parent)
-        # siblings = all children of parent, incl. node_id
-        production.extend(tree.successors(parent))
-        for node in production:
-            if node not in subtree:
-                return False
-    return True
+    tree_rules = get_production_rules(tree)
+    subtree_rules = get_production_rules(subtree, root_node=subtree_root_node)
+    return all(st_rule in tree_rules for st_rule in subtree_rules)
+
 
 
 
