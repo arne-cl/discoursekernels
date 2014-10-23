@@ -60,10 +60,11 @@ def example_invalid_subtrees():
 
 
 def test_is_subtree():
+    from tree_kernel import is_subtree
     tree = example_tree()
     valid_subtrees = example_valid_subtrees()
     invalid_subtrees = example_invalid_subtrees()
     for valid_subtree in valid_subtrees:
-        assert is_subtree(valid_subtree) == True
+        assert is_subtree(tree, valid_subtree) == True
     for invalid_subtree in invalid_subtrees:
-        assert is_subtree(invalid_subtree) == True
+        assert is_subtree(tree, invalid_subtree) == False
