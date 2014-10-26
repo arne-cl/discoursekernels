@@ -37,7 +37,25 @@ BBS_KERNEL_PARAMS = {
     ('a', 'b', 1): 0,
     ('ab', 'ab', 1): 2,
     ('abccc', 'abc', 2): 7,
-    ('abc','abccc',2): 7
+    ('abc','abccc',2): 7,
+    ("b", "b", 2): 1,
+    ("b", "be", 2): 1,
+    ("b", "ber", 2): 1,
+    ("bi", "b", 2): 1,
+    ("bi", "be", 2): 1,
+    ("bi", "ber", 2): 1,
+    ("bie", "b", 2): 1,
+    ("bie", "be", 2): 2,
+    ("bie", "ber", 2): 2,
+    ("bieb", "b", 2): 2,
+    ("bieb", "be", 2): 3,
+    ("bieb", "ber", 2): 3,
+    ("biebe", "b", 2): 2,
+    ("biebe", "be", 2): 5,
+    ("biebe", "ber", 2): 5,
+    ("bieber", "b", 2): 2,
+    ("bieber", "be", 2): 5,
+    ("bieber", "ber", 2): 7
 }
 
 
@@ -76,4 +94,6 @@ def test_p_suffix_kernel():
 
 def test_blended_spectrum_kernel():
     from spectrum_kernel import blended_spectrum_kernel
-    raise NotImplementedError
+    from test_matlab_blended_kernel import BLENDED_SPECTRUM_KERNEL_PARAMS
+    for params, result in BLENDED_SPECTRUM_KERNEL_PARAMS.iteritems():
+        assert blended_spectrum_kernel(*params) == result
