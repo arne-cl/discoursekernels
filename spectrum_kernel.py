@@ -2,9 +2,47 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+from collections import Counter
 from repoze.lru import lru_cache
 
 """Naive implementations of a spectrum (string) kernels."""
+
+
+def ngrams(text, n, pad=None):
+    """
+    generates a list of n-gram tuples from the input text (character n-grams
+    if the input is a string or token n-grams if the input is a list of token
+    strings).
+
+    Parameters
+    ----------
+    text : str or list of str
+        a string (to generate character ngrams) or a list of strings (to
+        generate token ngrams)
+    n : int
+        1 to generate unigrams, 2 for bigrams etc.
+    pad : str or None
+        If the length of text is not evenly divisible by n, the final tuple is
+        dropped if pad is not specified, or filled to length n by pad.
+
+    Returns
+    -------
+    ngrams : list of tuples of str
+    """
+    if pad:
+        text += pad * n
+        for i in xrange(0, len(text)-n):
+            yield tuple(text[i:i+n])
+    else:
+        for i in xrange(0, len(text)-n+1):
+            yield tuple(text[i:i+n])
+
+
+def p_spectrum(text, k):
+    """
+    generates the p-spectrum (n-gram/k-mer counts) of the input string.
+    """
+    return Counter(ngrams(text, k, ' '))
 
 
 @lru_cache(500)
