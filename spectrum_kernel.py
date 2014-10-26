@@ -112,24 +112,44 @@ def bruteforce_blended_spectrum_kernel(s, t, p):
 
 
 @lru_cache(500)
-def p_suffix_kernel(s, t, p, lambda_weight=1):
+def p_suffix_kernel(sa, tb, p, lambda_weight=1):
     """
     evalutates the similarity of of the suffixes of the given
     input strings s and t.
+
+    returns 0, if:
+
+    - p = 0
+    - λ = 0 (because this multiplies by 0 -- not explicitly mentioned)
+    - sa and tb don't share their last character
+    - if one of the strings is empty
+    - if one of the truncated strings (string minus last character) is empty.
+      this isn't mentioned in the text (Shawe-Taylor and Cristianini 2004,
+      p.350f), but in the accompanying source file blended_spectrum.m
+      TODO: this one might be wrong. compare with other implementations
+
     """
-    if p == 0:
+    if p == 0 or lambda_weight == 0:
         return 0
-    # if s and t share their last character
-    try:
-        if s[-1] == t[-1]:
-            # evaluate p-suffix kernel recursively the remaining strings
-            # (i.e. everything but the last character)
-            return lambda_weight**2 * (1 + p_suffix_kernel(s[:-1], t[:-1], p-1,
-                                                           lambda_weight))
+
+    try:  # if s and t share their last character
+        if sa[-1] != tb[-1]:
+            return 0
     except IndexError:  # at least one of the strings is empty
         return 0
-    else:
+
+    # truncate last character of string
+    s = sa[:-1]
+    t = tb[:-1]
+
+    # base case: return 0, if either truncated string has length 0
+    if len(s) == 0 or len(t) == 0:
         return 0
+
+    # evaluate p-suffix kernel recursively the remaining strings
+    # (i.e. everything but the last character)
+    return lambda_weight**2 * (1 + p_suffix_kernel(s, t, p-1, lambda_weight))
+
 
 
 def blended_spectrum_kernel(s, t, p, lambda_weight=1):
