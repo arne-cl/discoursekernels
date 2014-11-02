@@ -51,7 +51,7 @@ def get_production_rules(syntax_tree, root_node=None):
         root_node = topological_sort(syntax_tree)[0]
 
     for source, _target in dfs_edges(syntax_tree, root_node):
-        rules.add( (source, tuple(syntax_tree.successors(source))) )
+        rules.add( (source, tuple(sorted(syntax_tree.successors(source)))) )
     return rules
 
 
