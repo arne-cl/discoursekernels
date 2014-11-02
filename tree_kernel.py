@@ -40,7 +40,7 @@ def get_production_rules(syntax_tree, root_node=None):
 
     Returns
     -------
-    rules : list of (str, tuple of str) tuples
+    rules : set of (str, tuple of str) tuples
         each rule consists of a lhs (a string representing a node ID) and a rhs
         (a tuple of strings representing node IDs)
     """
