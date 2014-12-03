@@ -115,50 +115,23 @@ def count_proper_corooted_subtrees(tree, root_node):
     return subtree_count
 
 
-def is_subtree(tree, subtree, subtree_root_node=None):
+def get_subtrees(tree):
     """
-    Collins and Duffy (2001) define a subtree to be any subgraph, which
-    includes more than one node. A subtree must not include partial rule
-    productions, i.e. [NP [D the]] is not a subtree, while
-    [NP [D the] [N apple]] and [D the] are subtrees.
+    naively generate all subtrees of a given tree, which are valid
+    according to Collins and Duffy (2001).
 
-    cf. Collins and Duffy (2001). Convolution Kernels for Natural Language.
+    Parameters
+    ----------
+    tree : networkx.DiGraph
 
-    TODO: implement is_rooted_tree()
-    NOTE: is_arborescence() is defined as follows:
-        An arborescence is a directed tree with maximum in-degree equal to 1.
+    Yields
+    ------
+    subtrees : generator of networkx.DiGraph
     """
-    if len(subtree.nodes()) < 2:
-        return False
-
-    # root node is the first element in a topological sort of the graph
-    if not subtree_root_node:
-        subtree_root_node = topological_sort(subtree)[0]
-
-    if not contains_only_complete_productions(tree, subtree, subtree_root_node):
-        return False
-    elif not is_arborescence(tree):
-        return False
-    elif not is_arborescence(subtree):
-        return False
-    else:
-        return True
-
-
-def get_syntax_subtrees(tree, root_node='S', debug_dir='/tmp/subtrees'):
-    import os
-    from networkx import write_dot
-
-    subtrees = []
-    for i, child_node in enumerate(tree.successors(root_node)):
-        # cf. http://stackoverflow.com/questions/7892144/subtree-with-networkx
-        child_subgraph = dfs_tree(tree, child_node)
-        if debug_dir:
-            write_dot(child_subgraph, os.path.join(debug_dir, 'subtree-{}.dot'.format(i)))
-        if is_subtree(tree, child_subgraph, child_node):
-            subtrees.append(child_subgraph)
-    return subtrees
-
-
-def count_syntax_subtrees(tree, root_node):
-    return len(get_syntax_subtrees(tree, root_node))
+    for n in xrange(1, tree.number_of_nodes()+1):
+        for sub_nodes in itertools.combinations(tree.nodes(), n):
+            subgraph = tree1.subgraph(sub_nodes)
+            if nx.is_weakly_connected(subgraph):
+                if is_proper(subgraph):
+                    if contains_only_complete_productions(tree, subgraph):
+                        yield subgraph
