@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+import networkx as nx
 from networkx import DiGraph, dfs_edges, is_arborescence, topological_sort
 from networkx.algorithms.traversal.depth_first_search import dfs_tree
 from ordered_set import OrderedSet
@@ -131,7 +132,17 @@ def get_subtrees(tree):
     for n in xrange(1, tree.number_of_nodes()+1):
         for sub_nodes in itertools.combinations(tree.nodes(), n):
             subgraph = tree1.subgraph(sub_nodes)
-            if nx.is_weakly_connected(subgraph):
-                if is_proper(subgraph):
-                    if contains_only_complete_productions(tree, subgraph):
-                        yield subgraph
+            if is_subtree(tree, subgraph):
+                yield subgraph
+
+
+def is_subtree(tree, subtree_candidate):
+    """
+    returns True, iff the given subtree candidate is a valid subtree
+    (according to Collins and Duffy 2001) of the given tree.
+    """
+    if nx.is_weakly_connected(subtree_candidate):
+        if is_proper(subtree_candidate):
+            if contains_only_complete_productions(tree, subtree_candidate):
+                return True
+    return False
