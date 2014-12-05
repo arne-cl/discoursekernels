@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+import itertools
 import networkx as nx
 from networkx import DiGraph, dfs_edges, is_arborescence, topological_sort
 from networkx.algorithms.traversal.depth_first_search import dfs_tree
@@ -131,7 +132,7 @@ def get_subtrees(tree):
     """
     for n in xrange(1, tree.number_of_nodes()+1):
         for sub_nodes in itertools.combinations(tree.nodes(), n):
-            subgraph = tree1.subgraph(sub_nodes)
+            subgraph = tree.subgraph(sub_nodes)
             if is_subtree(tree, subgraph):
                 yield subgraph
 
