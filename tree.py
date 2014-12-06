@@ -22,15 +22,17 @@ def is_leave(tree, node_id):
     return True if tree.out_degree(node_id) == 0 else False
 
 
-def get_production_rules(syntax_tree, root_node=None):
+def get_production_rules(syntax_tree, root_node=None, node_attrib=None):
     """
     Iterates through a tree (starting at the given node) and returns
-    a set of 'production rules'. each 'rule' is a tuple, consisting of a
-    node ID (str) and a tuple of it successors (str, i.e. the node IDs of all
-    the nodes connected via outgoing edges) as its value.
+    a set of 'production rules'. each 'rule' is a represented as a tuple,
+    e.g. the rule ``S -> NP VP`` is represented by ('S', ('NP', 'VP')).
+    The left-hand side of the rule is extracted from the given attribute of a
+    node, while the right-hand side is extracted from the same node attribute
+    of the node's successors (i.e. the nodes connected via outgoing edges).
 
-    I put 'production rules' in quotes, as they are based on unique node IDs,
-    and not necessarily on syntactic categories.
+    If no node attribute is given, the rules will be extracted from the node
+    IDs of the tree.
 
     Parameters
     ----------
@@ -39,6 +41,9 @@ def get_production_rules(syntax_tree, root_node=None):
     root_node : str or None
         the node ID of the tree's root node. if not specified, it will be
         determined automatically.
+    node_attrib : str or None
+        If a node attribute is given (e.g. 'label'), its value is used for
+        generating the production rules. Otherwise, the node IDs are used.
 
     Returns
     -------
@@ -52,18 +57,43 @@ def get_production_rules(syntax_tree, root_node=None):
         # root node is the first element in a topological sort of the graph
         root_node = topological_sort(syntax_tree)[0]
 
-    for source, _target in dfs_edges(syntax_tree, root_node):
-        rules.add( (source, tuple(sorted(syntax_tree.successors(source)))) )
+    if node_attrib:
+        for source, _target in dfs_edges(syntax_tree, root_node):
+            source_attrib = syntax_tree.node[source][node_attrib]
+            target_ids = sorted(syntax_tree.successors(source))
+            target_attribs = tuple(syntax_tree.node[tid][node_attrib]
+                                   for tid in target_ids)
+            rules.add( (source_attrib, target_attribs) )
+
+    else:  # rules will be generated from node IDs
+        for source, _target in dfs_edges(syntax_tree, root_node):
+            rules.add( (source, tuple(sorted(syntax_tree.successors(source)))) )
+
     return rules
 
 
-def contains_only_complete_productions(tree, subtree, subtree_root_node=None):
+def contains_only_complete_productions(tree, subtree, subtree_root_node=None,
+                                       node_attrib=None):
     """
     checks, if a syntax subtree only consists of complete productions from the
     given tree.
+
+    Parameters
+    ----------
+    tree : networkx.DiGraph
+        a tree represented as a directed graph
+    subtree : networkx.DiGraph
+        a (sub)tree represented as a directed graph
+    subtree_root_node : str or None
+        the node ID of the subtree's root node. if not specified, it will be
+        determined automatically.
+    node_attrib : str or None
+        If a node attribute is given (e.g. 'label'), its value is used for
+        generating the production rules. Otherwise, the node IDs are used.
     """
-    tree_rules = get_production_rules(tree)
-    subtree_rules = get_production_rules(subtree, root_node=subtree_root_node)
+    tree_rules = get_production_rules(tree, node_attrib=node_attrib)
+    subtree_rules = get_production_rules(subtree, root_node=subtree_root_node,
+                                         node_attrib=node_attrib)
     return all(st_rule in tree_rules for st_rule in subtree_rules)
 
 
@@ -117,7 +147,7 @@ def count_proper_corooted_subtrees(tree, root_node):
     return subtree_count
 
 
-def get_subtrees(tree):
+def get_subtrees(tree, node_attrib=None):
     """
     naively generate all subtrees of a given tree, which are valid
     according to Collins and Duffy (2001).
@@ -125,6 +155,13 @@ def get_subtrees(tree):
     Parameters
     ----------
     tree : networkx.DiGraph
+        a tree represented as a digraph
+    node_attrib : str or None
+        If a node attribute is given (e.g. 'label'), its value is used for
+        generating the production rules. Otherwise, the node IDs are used.
+        (Generating rules from node attributes should be faster. Node
+        attributes can occur repeatedly (e.g. 'NP'), while node IDs must be
+        unique (e.g. 'NP-23').
 
     Yields
     ------
@@ -133,17 +170,31 @@ def get_subtrees(tree):
     for n in xrange(1, tree.number_of_nodes()+1):
         for sub_nodes in itertools.combinations(tree.nodes(), n):
             subgraph = tree.subgraph(sub_nodes)
-            if is_subtree(tree, subgraph):
+            if is_subtree(tree, subgraph, node_attrib=node_attrib):
                 yield subgraph
 
 
-def is_subtree(tree, subtree_candidate):
+def is_subtree(tree, subtree_candidate, node_attrib=None):
     """
     returns True, iff the given subtree candidate is a valid subtree
     (according to Collins and Duffy 2001) of the given tree.
+
+    Parameter
+    ---------
+    tree : networkx.DiGraph
+        a tree represented as a digraph
+    subtree_candidate : networkx.DiGraph
+        a (sub)tree represented as a digraph
+    node_attrib : str or None
+        If a node attribute is given (e.g. 'label'), its value is used for
+        generating the production rules. Otherwise, the node IDs are used.
+        (Generating rules from node attributes should be faster. Node
+        attributes can occur repeatedly (e.g. 'NP'), while node IDs must be
+        unique (e.g. 'NP-23').
     """
     if nx.is_weakly_connected(subtree_candidate):
         if is_proper(subtree_candidate):
-            if contains_only_complete_productions(tree, subtree_candidate):
+            if contains_only_complete_productions(tree, subtree_candidate,
+                                                  node_attrib=node_attrib):
                 return True
     return False
