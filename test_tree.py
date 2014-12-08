@@ -143,6 +143,27 @@ tree_alex_died.add_edges_from([
 ])
 
 
+# Alex
+
+tree_fragment_alex = nx.DiGraph()
+tree_fragment_alex.add_nodes_from(label_nodes([
+    (2, 'NP'), (3, 'N'), (4, 'Alex')]))
+tree_fragment_alex.add_edges_from([
+    (2, 3), # NP N
+    (3, 4), # N Alex
+])
+
+
+# NP-N
+
+tree_fragment_npn = nx.DiGraph()
+tree_fragment_npn.add_nodes_from(label_nodes([
+    (2, 'NP'), (3, 'N')]))
+tree_fragment_npn.add_edges_from([
+    (2, 3) # NP N
+])
+
+
 # The man drank wine
 
 
