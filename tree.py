@@ -149,8 +149,8 @@ def count_proper_corooted_subtrees(tree, root_node):
 
 def get_subtrees(tree, node_attrib=None):
     """
-    naively generate all subtrees of a given tree, which are valid
-    according to Collins and Duffy (2001).
+    naively generate all subtrees (tree fragments) of a given tree, which are
+    valid according to Collins and Duffy (2001).
 
     Parameters
     ----------
@@ -166,6 +166,10 @@ def get_subtrees(tree, node_attrib=None):
     Yields
     ------
     subtrees : generator of networkx.DiGraph
+
+    See further
+    -----------
+    is_treefragment()
     """
     for n in xrange(1, tree.number_of_nodes()+1):
         for sub_nodes in itertools.combinations(tree.nodes(), n):
