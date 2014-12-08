@@ -170,20 +170,28 @@ def get_subtrees(tree, node_attrib=None):
     for n in xrange(1, tree.number_of_nodes()+1):
         for sub_nodes in itertools.combinations(tree.nodes(), n):
             subgraph = tree.subgraph(sub_nodes)
-            if is_subtree(tree, subgraph, node_attrib=node_attrib):
+            if is_treefragment(tree, subgraph, node_attrib=node_attrib):
                 yield subgraph
 
 
-def is_subtree(tree, subtree_candidate, node_attrib=None):
+def is_treefragment(tree, tree_fragment, node_attrib=None):
     """
-    returns True, iff the given subtree candidate is a valid subtree
-    (according to Collins and Duffy 2001) of the given tree.
+    returns True, iff the given tree fragment is a valid subtree
+    (according to Collins and Duffy 2001) of the given tree::
+
+        - the subtree must contain more than one node
+        - the subtree must only consist of full rule productions of the given
+          tree (e.g. ``S -> NP VP`` is fine, but ``S -> VP`` isn't -- unless
+          the given tree contains such a rule)
+
+    Additionally, we check if the subtree is connected (weakly connected,
+    since it is represented as a digraph).
 
     Parameter
     ---------
     tree : networkx.DiGraph
         a tree represented as a digraph
-    subtree_candidate : networkx.DiGraph
+    tree_fragment : networkx.DiGraph
         a (sub)tree represented as a digraph
     node_attrib : str or None
         If a node attribute is given (e.g. 'label'), its value is used for
@@ -192,9 +200,9 @@ def is_subtree(tree, subtree_candidate, node_attrib=None):
         attributes can occur repeatedly (e.g. 'NP'), while node IDs must be
         unique (e.g. 'NP-23').
     """
-    if nx.is_weakly_connected(subtree_candidate):
-        if is_proper(subtree_candidate):
-            if contains_only_complete_productions(tree, subtree_candidate,
+    if nx.is_weakly_connected(tree_fragment):
+        if is_proper(tree_fragment):
+            if contains_only_complete_productions(tree, tree_fragment,
                                                   node_attrib=node_attrib):
                 return True
     return False
