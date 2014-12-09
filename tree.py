@@ -4,9 +4,160 @@
 
 import itertools
 import networkx as nx
+from networkx.algorithms import isomorphism as iso
 from networkx import DiGraph, dfs_edges, is_arborescence, topological_sort
 from networkx.algorithms.traversal.depth_first_search import dfs_tree
 from ordered_set import OrderedSet
+
+
+def generate_all_unique_subtrees(*trees):
+    node_attrib = 'label'
+    same_node_label = iso.categorical_node_match(node_attrib, '')
+    if len(trees) == 0:
+        return []
+    elif len(trees) == 1:
+        return list(get_subtrees(trees[0], node_attrib=node_attrib))
+    else:
+        unique_subtrees = list(get_subtrees(trees[0], node_attrib=node_attrib))
+        for tree in trees[1:]:
+            for subtree in get_subtrees(tree, node_attrib=node_attrib):
+                # match each new subtree against all subtrees already in unique_subtrees
+                # if it is not isomorphic (incl. matching node labels) to any of the existing
+                # subtrees, it will be added to the list
+                if not any(nx.is_isomorphic(new_subtree, old_subtree, node_match=same_node_label)
+                           for new_subtree, old_subtree in itertools.product([subtree], unique_subtrees)):
+                    unique_subtrees.append(subtree)
+        return unique_subtrees
+
+
+def is_rooted_at_node(tree, subtree, tree_node, node_attrib=None):
+    """
+    Indicator function $I_i(n)$: Is the subtree i rooted at node n (of the tree)?
+    
+    Returns
+    -------
+    is_rooted : int
+        Returns 1, iff all rule productions of the subtree can be found in the
+        set of production rules of the tree (starting at node n / ``tree_node``) and
+        iff the tree_node n and the subtree's root node are equal
+        (same node labels if node_attrib is given, otherwise: same node IDs).
+        Otherwise, returns 0.
+    """
+    # the root node of a tree is the first element in a topological sort of the tree
+    subtree_root_node = topological_sort(subtree)[0]
+    
+    # a subtree can only be rooted at a tree's tree_node (n),
+    # if the tree node and the subtree root node are equal
+    if node_attrib:
+        if tree.node[tree_node][node_attrib] != subtree.node[subtree_root_node][node_attrib]:
+            return 0
+    else:
+        if tree_node != subtree_root_node:
+            return 0
+
+    tree_subtree_rules = get_production_rules(tree, root_node=tree_node, node_attrib=node_attrib)
+    subtree_rules = get_production_rules(subtree, node_attrib=node_attrib)
+    if all(st_rule in tree_subtree_rules for st_rule in subtree_rules):
+        return 1
+    else:
+        return 0
+
+
+def count_tree_fragment_occurances(tree, subtree, node_attrib='label'):
+    """
+    $h_i(T_1)$ : how often does subtree i occur in Tree 1?
+    """
+    counter = 0
+    for node in tree.nodes_iter():
+        # is_rooted() returns one if the productions of the subtree and
+        # the productions of the tree (beginning at "node") are the same
+        counter += is_rooted_at_node(tree, subtree, tree_node=node,
+                                     node_attrib=node_attrib)
+    return counter
+
+
+def common_subtrees(tree1, tree2, n1, n2, node_attrib='label'):
+    """
+    function $C(n_1, n_2)$ simply counts the number of
+    _common subtrees_ rooted at both $n_1$ and $n_2$
+    and is defined as $\sum_i I_i(n_1) I_i(n_2)$
+    """
+    n1_rules = get_production_rules(tree1, n1, node_attrib=node_attrib)
+    n2_rules = get_production_rules(tree2, n2, node_attrib=node_attrib)
+    
+    if min(len(n1_rules), len(n2_rules)) < 1:
+        # this condition isn't explicitly mentioned in Collins and Duffy (2001),
+        # but they state that a valid subtree must have more than one node
+        # if a subtree has no production rules, it only consists of leave nodes
+        return 0
+    
+    if n1_rules != n2_rules:
+        return 0
+    else:  # n1_rules == n2_rules
+        if is_preterminal(tree1, n1) and is_preterminal(tree2, n2):
+            return 1
+        else:  # n1 and/or n2 aren't preterminals
+            n1_children = tree1.successors(n1)
+            n2_children = tree1.successors(n2)
+            assert len(n1_children) == len(n2_children)
+            result = 1  # neutral element of multiplication
+            for j, n1_child_node in enumerate(n1_children):
+                result *= 1 + common_subtrees(tree1, tree2, n1_child_node, n2_children[j])
+            return result
+
+
+def tree_kernel_polynomial(tree1, tree2, node_attrib='label'):
+    """
+    \sum_{n_1 \in N_1} \sum_{n_2 \in N_2} C(n_1, n_2)
+    """
+    common_sts = 0
+    for tree1_node in tree1.nodes_iter():
+        for tree2_node in tree2.nodes_iter():
+            common_sts += common_subtrees(tree1, tree2, tree1_node, tree2_node, node_attrib=node_attrib)
+    return common_sts
+
+
+def tree_kernel_naive(tree1, tree2, node_attrib='label'):
+    """
+    \sum_{n_1 \in N_1} \sum_{n_2 \in N_2} \sum_i I_i(n_1) I_i(n_2)
+    """
+    all_subtrees = generate_all_unique_subtrees(tree1, tree2)
+    common_sts = 0
+    for tree1_node in tree1.nodes_iter():
+        for tree2_node in tree2.nodes_iter():
+            for subtree in all_subtrees:
+                common_sts += is_rooted_at_node(tree1, subtree, tree1_node) * is_rooted_at_node(tree2, subtree, tree2_node)
+    return common_sts
+
+
+def find_all_common_subtrees_bruteforce(tree1, tree2, node_attrib=None):
+    """
+    returns a list of all valid subtrees (Collins and Duffy 2001)
+    that occur in both given trees.
+    
+    two subtrees are considered equal, iff they have the same structure
+    and their node labels are identical.
+    """
+    same_node_label = iso.categorical_node_match('label', '')
+    tree1_subtrees = get_subtrees(tree1, node_attrib=node_attrib)
+    tree2_subtrees = get_subtrees(tree2, node_attrib=node_attrib)
+    common_subtrees = []
+    for (subtree1, subtree2) in itertools.product(tree1_subtrees, tree2_subtrees):
+        if nx.is_isomorphic(subtree1, subtree2, node_match=same_node_label):
+            common_subtrees.append(subtree1)
+    return common_subtrees
+
+
+def is_preterminal(tree, node):
+    """
+    returns True, if the given node is a preterminal in the given tree.
+    False, otherwise.
+    """
+    if tree.out_degree(node) == 1:
+        if is_leave(tree, tree.successors(node)[0]):
+            return True
+    else:
+        return False
 
 
 def is_proper(tree):
@@ -99,9 +250,14 @@ def contains_only_complete_productions(tree, subtree, subtree_root_node=None,
 
 
 
-def get_proper_corooted_subtrees(tree, root_node):
+def get_proper_corooted_subtrees(tree, root_node=None):
     """
     """
+    if not root_node:
+    # the root node of a tree is the first element in a topological sort
+    # of the tree
+        root_node = topological_sort(tree)[0]
+
     if not is_proper(tree):
         return []
 
