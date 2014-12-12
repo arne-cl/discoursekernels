@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 # Author: Arne Neumann <discoursekernels.programming@arne.cl>
 
+import itertools
 from collections import defaultdict
+
 import networkx as nx
+from networkx.algorithms import isomorphism as iso
+
 
 def dependency_children(dependency_graph, node, edge_attrib='label'):
     """
@@ -155,3 +159,60 @@ def includes_all_subgraph_rules(graph, subgraph_candidate,
                                           node_attrib=node_attrib,
                                           edge_attrib=edge_attrib)
     return all(sg_rule in graph_rules for sg_rule in subgraph_rules)
+
+
+def is_dependency_subgraph(graph, subgraph_candidate,
+                           node_attrib='label', edge_attrib='label'):
+    """
+    returns True, if the graph contains all of the subgraph candidate's
+    dependency rules. The subgraph must also be (weakly) connected and contain
+    at least two nodes.
+
+    NOTE: The criteria used here might not be strong enough, i.e. it would
+    be possible to construct a subgraph candidate that contains only rules
+    from the graph but is not a true subgraph of the graph.
+    """
+    if len(subgraph_candidate) > 1:
+        if nx.is_weakly_connected(subgraph_candidate):
+            if includes_all_subgraph_rules(graph, subgraph_candidate,
+                                           node_attrib=node_attrib,
+                                           edge_attrib=edge_attrib):
+                return True
+    return False
+
+
+def get_dependency_subgraphs(graph, node_attrib='label', edge_attrib='label'):
+    """
+    naively generate all (dependency parse) subgraphs of a given graph by
+    iterating through all possible node combinations. HIGHLY INEFFICIENT.
+    """
+    assert nx.is_directed_acyclic_graph(graph)
+    for n in xrange(graph.number_of_nodes()):
+        for subnodes in itertools.combinations(graph.nodes(), n+1):
+            subgraph_candidate = graph.subgraph(subnodes)
+            if is_dependency_subgraph(graph, subgraph_candidate,
+                                      node_attrib=node_attrib,
+                                      edge_attrib=edge_attrib):
+                yield subgraph_candidate
+
+
+def generate_all_unique_dependency_subgraphs(graphs, node_attrib='label',
+                                             edge_attrib='label'):
+    same_node_label = iso.categorical_node_match(node_attrib, '')
+    same_edge_label = iso.categorical_edge_match(edge_attrib, '')
+    if len(graphs) == 0:
+        return []
+    elif len(graphs) == 1:
+        return list(get_dependency_subgraphs(graphs[0], node_attrib=node_attrib))
+    else:
+        unique_subgraphs = list(get_dependency_subgraphs(
+            graphs[0], node_attrib=node_attrib, edge_attrib=edge_attrib))
+        for graph in graphs[1:]:
+            for subgraph in get_dependency_subgraphs(graph):
+                sg_combs = itertools.product([subgraph], unique_subgraphs)
+                if not any(nx.is_isomorphic(new_sg, old_sg,
+                                            node_match=same_node_label,
+                                            edge_match=same_edge_label)
+                           for new_sg, old_sg in sg_combs):
+                    unique_subgraphs.append(subgraph)
+        return unique_subgraphs
