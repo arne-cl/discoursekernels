@@ -70,30 +70,6 @@ def test_is_subtree():
     for invalid_subtree in invalid_subtrees:
         assert is_subtree(tree, invalid_subtree) == False
 
-def label_nodes(node_label_tuples_list):
-    """
-    convert a list of (node ID, node label) tuples into a list of
-    (node ID, {'label': node label}) tuples, which can be added to a
-    networkx graph via .add_nodes_from().
-    """
-    nodes = []
-    for node_id, node_label in node_label_tuples_list:
-        nodes.append( (node_id, {'label': node_label}) )
-    return nodes
-
-
-def label_edges(edge_label_tuples_list):
-    """
-    convert a list of (source ID, target ID, edge label) tuples into a list of
-    (source ID, target ID, {'label': edge label}) tuples, which can be added
-    to a networkx graph via .add_nodes_from().
-    """
-    edges = []
-    for source_id, target_id, edge_label in edge_label_tuples_list:
-        edges.append( (source_id, target_id, {'label': edge_label}) )
-    return edges
-
-
 
 # Example trees
 
