@@ -166,7 +166,15 @@ def enumerate_all_subgraphs_upto_size_k_parallel(document_graph, k, num_of_worke
 
     pool = Pool(processes=num_of_workers) # number of CPUs
     results = [pool.apply_async(enumerate_all_size_k_subgraphs, args=(int_graph, i))
-               for i in xrange(1, k+1)]
+                for i in xrange(1, k+1)]
     pool.close()
     pool.join()
-    return [result.get() for result in results]
+
+    subgraphs = []
+    for result in results:
+        tmp_result = result.get()
+        if isinstance(tmp_result, list):
+            subgraphs.extend(tmp_result)
+        else:
+            subgraphs.append(tmp_result)
+    return subgraphs
