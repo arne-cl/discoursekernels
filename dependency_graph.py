@@ -8,6 +8,8 @@ from collections import defaultdict
 import networkx as nx
 from networkx.algorithms import isomorphism as iso
 
+from discoursegraphs.util import ensure_utf8
+
 
 def dependency_children(dependency_graph, node, edge_attrib='label'):
     """
@@ -139,9 +141,9 @@ def get_dependency_rules(graph, root_node=None,
         root_node = nx.topological_sort(graph)[0]
 
     for source, target in nx.dfs_edges(graph, root_node):
-        rules.add( (graph.node[source]['label'],
-                    graph[source][target]['label'],
-                    graph.node[target]['label']) )
+        rules.add( (ensure_utf8(graph.node[source].get(node_attrib, source)),
+                    ensure_utf8(graph[source][target].get(edge_attrib, '')),
+                    ensure_utf8(graph.node[target].get(node_attrib, target))) )
     return rules
 
 
