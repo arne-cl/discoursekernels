@@ -141,7 +141,9 @@ def enumerate_all_subgraphs_upto_size_k(document_graph, k):
         k = document_nodes
 
     all_subgraphs = []
-    int_graph = nx.convert_node_labels_to_integers(nx.DiGraph(document_graph))
+    int_graph = nx.convert_node_labels_to_integers(nx.DiGraph(document_graph),
+                                                   first_label=1,
+                                                   label_attribute='node_id')
     for i in xrange(1, k+1):
         size_k_subgraphs = enumerate_all_size_k_subgraphs(int_graph, i)
         all_subgraphs.extend(size_k_subgraphs)
@@ -158,7 +160,9 @@ def enumerate_all_subgraphs_upto_size_k_parallel(document_graph, k, num_of_worke
     if k > document_nodes:
         k = document_nodes
 
-    int_graph = nx.convert_node_labels_to_integers(nx.DiGraph(document_graph))
+    int_graph = nx.convert_node_labels_to_integers(nx.DiGraph(document_graph),
+                                                   first_label=1,
+                                                   label_attribute='node_id')
 
     pool = Pool(processes=num_of_workers) # number of CPUs
     results = [pool.apply_async(enumerate_all_size_k_subgraphs, args=(int_graph, i))
