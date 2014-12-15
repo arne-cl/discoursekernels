@@ -2,6 +2,8 @@
 import networkx as nx
 from networkx import DiGraph
 
+from discoursekernels.util import label_nodes, label_edges
+
 def example_tree():
     """creates a tree/networkx.DiGraph of a syntactic parse tree"""
     tree = DiGraph()
